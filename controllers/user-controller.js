@@ -81,7 +81,7 @@ const userController = {
           tweetCount: user.Tweets.length,
           followerCount: user.Followers.length,
           followingCount: user.Followings.length,
-          isFollow: user.Followers.some(u => u.id === currentUser.id)
+          isFollowed: user.Followers.some(u => u.id === currentUser.id)
         }
 
         delete user.password
@@ -132,7 +132,7 @@ const userController = {
         res.status(200).json(replies)
       }).catch(err => next(err))
   },
-    getUserLikes: (req, res, next) => {
+  getUserLikes: (req, res, next) => {
     const UserId = req.params.id
     return Like.findAll({
       where: { UserId },
@@ -145,7 +145,7 @@ const userController = {
           model: User,
           attributes:
             ['id', 'account', 'name',
-              'avatar'], 
+              'avatar'],
         }, { model: Reply }, { model: Like }]
       }]
     })
@@ -156,7 +156,7 @@ const userController = {
         }))
         likes.forEach(like => {
           like.replyCounts = like.Tweet.Replies.length,
-          like.likeCounts = like.Tweet.Likes.length,
+            like.likeCounts = like.Tweet.Likes.length,
             like.isLiked = like.Tweet.Likes.map(u => u.UserId).includes(currentUser.id)
           delete like.Tweet.Replies
           delete like.Tweet.Likes
@@ -197,9 +197,9 @@ const userController = {
           delete data.Followship
         })
         res.status(200).json(followers)
-      })
+      }).catch(err => next(err))
   },
-   getUserFollowings: (req, res, next) => {
+  getUserFollowings: (req, res, next) => {
     const UserId = req.params.id
     return User.findByPk(UserId, {
       attributes: ['id',
@@ -231,7 +231,32 @@ const userController = {
           delete data.Followship
         })
         res.status(200).json(followings)
-      })
+      }).catch(err => next(err))
+  },
+  getPopularUsers: (req, res, next) => {
+    const currentUser = helpers.getUser(req).id
+    return User.findAll({
+      include: {
+        model: User, as: 'Followers', attributes: ['id']
+      },
+      attributes: ['id',
+        'name',
+        'avatar',
+        'account'],
+      where: { role: 'user' }
+
+    })
+      .then(users => {
+        users.forEach(user => {
+          user = user.dataValues
+          user.followerCounts = user.Followers.length
+          user.isFollowed = user.Followers.some(u => u.dataValues.id === currentUser)
+          delete user.Followers
+        })
+        users.sort((a, b) => b.followerCounts - a.followedCount).slice(0,10)
+
+        res.status(200).json(users)
+      }).catch(err => next(err))
   }
 
 }
