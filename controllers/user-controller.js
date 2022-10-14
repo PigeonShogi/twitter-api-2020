@@ -33,8 +33,10 @@ const userController = {
   postUser: (req, res, next) => {
     const { account, name, email, password } = validateData(req.body)
 
-    return User.findAll({ where: 
-  { [Op.or]: [{ account }, { email }] } })
+    return User.findAll({
+      where:
+        { [Op.or]: [{ account }, { email }] }
+    })
       .then(users => {
         const UniqueData = {
           account,
@@ -72,7 +74,6 @@ const userController = {
           account,
           email
         }
-        console.log(Unique)
         validateUnique(users, Unique)
 
         return User.update({
@@ -85,7 +86,8 @@ const userController = {
           plain: true
         })
       }).then(() => res.status(200).json({
-        status: 'success'
+        status: 'success',
+        msg: 'change succeeded !'
       }))
       .catch(err => next(err))
   },
@@ -233,9 +235,7 @@ const userController = {
             'account',
             'avatar',
             'introduction']
-        }],
-      order:
-        [[sequelize.col('Followers.created_at', 'DESC')]]
+        }]
     })
       .then(user => {
         validateUser(user)
@@ -246,8 +246,11 @@ const userController = {
         followers.forEach(data => {
           data.followerId = data.Followship.followerId
           data.isFollowed = userFollowings.some(id => id === data.id)
+          data.followCreatAt = data.Followship.createdAt
           delete data.Followship
         })
+        followers.sort((a, b) => b.followCreatAt - a.followCreatAt)
+        
         res.status(200).json(followers)
       }).catch(err => next(err))
   },
@@ -269,8 +272,6 @@ const userController = {
             'avatar',
             'introduction']
         }],
-      order:
-        [[sequelize.col('Followings.created_at', 'DESC')]]
     })
       .then(user => {
         validateUser(user)
@@ -282,8 +283,11 @@ const userController = {
         followings.forEach(data => {
           data.followingId = data.Followship?.followingId
           data.isFollowed = userFollowings?.some(id => id === data.id)
+          data.followCreatAt = data?.Followship?.createdAt,
           delete data.Followship
         })
+        followings.sort((a, b) => b.followCreatAt - a.followCreatAt)
+
         res.status(200).json(followings)
       }).catch(err => next(err))
   },
@@ -308,7 +312,7 @@ const userController = {
           delete user.Followers
           return user
         })
-        popularUser.sort((a, b) => b.followerCounts - a.followerCounts).slice(0, 10)
+        popularUser.sort((a, b) => b.followerCounts - a.followerCounts).splice(10)
 
         res.status(200).json(popularUser)
       }).catch(err => next(err))
