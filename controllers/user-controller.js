@@ -57,6 +57,7 @@ const userController = {
       .then(user => {
         const userData = user.toJSON()
         delete userData.password
+
         res.status(200).json({
           status: 'success',
           data: {
@@ -122,6 +123,7 @@ const userController = {
     })
       .then(user => {
         validateUser(user)
+
         user = {
           ...user.toJSON(),
           tweetCount: user.Tweets?.length,
@@ -133,6 +135,7 @@ const userController = {
         delete user.password
         delete user.Tweets
         delete user.Followers
+
         res.status(200).json(user)
       })
       .catch(err => next(err))
@@ -192,7 +195,9 @@ const userController = {
       order: [['createdAt', 'DESC']],
       include: [{
         model: User,
-        attributes: ['id', 'account', 'name', 'avatar'], foreignKey: 'UserId', as: 'replyUser'
+        attributes: ['id', 'account', 'name', 'avatar'], 
+        foreignKey: 'UserId', 
+        as: 'replyUser'
       }, {
         model: Tweet,
         attributes: ['id', 'description'],
