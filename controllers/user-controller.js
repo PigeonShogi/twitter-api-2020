@@ -190,7 +190,9 @@ const userController = {
       order: [['createdAt', 'DESC']],
       include: [{
         model: User,
-        attributes: ['id', 'account', 'name', 'avatar'], foreignKey: 'UserId', as: 'replyUser'
+        attributes: ['id', 'account', 'name', 'avatar'], 
+        foreignKey: 'UserId', 
+        as: 'replyUser'
       }, {
         model: Tweet,
         attributes: ['id', 'description'],
